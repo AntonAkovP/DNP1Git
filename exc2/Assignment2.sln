@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assignment2test", "Assignment2\Assignment2test.csproj", "{F6389C05-A2CB-4230-A0B7-7634FB8D5D60}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathLib", "MathLib\MathLib.csproj", "{F1407C8D-8CC7-430D-8D02-1554292D1847}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F6389C05-A2CB-4230-A0B7-7634FB8D5D60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6389C05-A2CB-4230-A0B7-7634FB8D5D60}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6389C05-A2CB-4230-A0B7-7634FB8D5D60}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6389C05-A2CB-4230-A0B7-7634FB8D5D60}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F1407C8D-8CC7-430D-8D02-1554292D1847}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1407C8D-8CC7-430D-8D02-1554292D1847}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1407C8D-8CC7-430D-8D02-1554292D1847}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1407C8D-8CC7-430D-8D02-1554292D1847}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
