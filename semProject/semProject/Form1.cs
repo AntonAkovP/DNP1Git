@@ -28,6 +28,7 @@ namespace semProject
             userData = new UsersDataSet();
             Task.Run(()=>startListening());
         }
+
         private void startListening()
         {
             byte[] adr = { 127, 0, 0, 1 };
@@ -54,7 +55,11 @@ namespace semProject
             NetworkStream ns = client.GetStream();
             XDocument doc = acceptMessage(ns);
 
-            while (!LoginReg(doc, ns)) { }
+            try
+            {
+                while (!LoginReg(doc, ns)) { doc = acceptMessage(ns); }
+            }
+            catch (Exception) { }
 
             
         }
@@ -90,38 +95,50 @@ namespace semProject
 
 
                 }
-                catch (System.IO.IOException e) { return null; }
+                catch (System.IO.IOException) { return null; }
             }
         }
 
         private Boolean LoginReg(XDocument doc, NetworkStream ns)
         {
             byte[] writeBuff;
+
+            
             if (doc.Root.Element("type").Value.Equals("log"))
             {
+                Log(doc.Root.Element("uname").Value + "attempted Login");
+
                 List<String> resultSet = (from usersData in userData.Users.AsEnumerable()
                                           where usersData.username == doc.Root.Element("uname").Value
                                           select string.Format("{0}", usersData.password)
                                           ).ToList();
-                XDocument responce = new XDocument();
+
+                XDocument responce = new XDocument(new XElement("serverResponce"));
+                responce.Root.Add(new XElement("type", "logrep"));
                 XElement elem;
-                if (resultSet[0] != null && resultSet[0].Equals(doc.Root.Element("pw").Value))
+
+                if (resultSet.Count>0 && resultSet[0].Equals(doc.Root.Element("pw").Value))
                 {
                     elem = new XElement("rep", true);
-                    responce.Add(elem);
+                    responce.Root.Add(elem);
 
                     writeBuff = Encoding.UTF8.GetBytes(responce.ToString());
                     ns.Write(writeBuff, 0, writeBuff.Length);
+
+
+                    Log(doc.Root.Element("uname").Value + "sucessfully logged in");
 
                     return true;
                 }
                 else
                 {
                     elem = new XElement("rep", false);
-                    responce.Add(elem);
+                    responce.Root.Add(elem);
 
                     writeBuff = Encoding.UTF8.GetBytes(responce.ToString());
                     ns.Write(writeBuff, 0, writeBuff.Length);
+
+                    Log(doc.Root.Element("uname").Value + "couldn't logged in");
 
                     return false;
                 }
@@ -135,18 +152,25 @@ namespace semProject
                 UsersDataSet.UsersRow newUser = userData.Users.NewUsersRow();
                 newUser.username = doc.Root.Element("uname").Value;
                 newUser.password = doc.Root.Element("pw").Value;
+
+                Log(doc.Root.Element("uname").Value + "attempted registration");
                 XElement elem;
                 try
                 {
                     userData.Users.Rows.Add(newUser);
                     elem = new XElement("rep", true);
+
+                    Log(doc.Root.Element("uname").Value + "sucessfully registered");
                 }
                 catch (ConstraintException)
                 {
                     elem = new XElement("rep", false);
+
+                    Log(doc.Root.Element("uname").Value + "couldn't register");
                 }
-                XDocument responce = new XDocument();
-                responce.Add(elem);
+                XDocument responce = new XDocument(new XElement("serverResponce"));
+                responce.Root.Add(elem);
+                responce.Root.Add(new XElement("type", "regrep"));
 
                 writeBuff = Encoding.UTF8.GetBytes(responce.ToString());
                 ns.Write(writeBuff, 0, writeBuff.Length);
@@ -154,5 +178,21 @@ namespace semProject
             return false;
 
         }
+
+        internal void Log(String message)
+        {
+            if (logBox.InvokeRequired)
+            {
+                this.Invoke((Action)(() =>
+                    Log(message)
+                ));
+                return;
+            }
+            logBox.AppendText(message + Environment.NewLine);
+        }
+
     }
+
+
+
 }

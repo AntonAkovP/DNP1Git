@@ -43,8 +43,7 @@
             this.usernameTB.Size = new System.Drawing.Size(276, 20);
             this.usernameTB.TabIndex = 0;
             this.usernameTB.Text = "Username";
-            this.usernameTB.GotFocus += OnFocus;
-            this.usernameTB.LostFocus += usernameTB_LostFocus;
+            this.usernameTB.TextChanged += new System.EventHandler(this.TB_TextChanged);
             // 
             // passwordTB
             // 
@@ -54,8 +53,7 @@
             this.passwordTB.Size = new System.Drawing.Size(276, 20);
             this.passwordTB.TabIndex = 1;
             this.passwordTB.Text = "Password";
-            this.passwordTB.GotFocus += OnFocus;
-            this.passwordTB.LostFocus += passwordTB_LostFocus;
+            this.passwordTB.TextChanged += new System.EventHandler(this.TB_TextChanged);
             // 
             // loginB
             // 
