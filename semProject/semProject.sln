@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "semProject", "semProject\semProject.csproj", "{6123766E-449E-4EA5-9612-D343693BF443}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "semProjectServer", "semProject\semProjectServer.csproj", "{6123766E-449E-4EA5-9612-D343693BF443}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "semProjectClient", "semProjectClient\semProjectClient.csproj", "{B0160213-38FD-4A2C-A81E-189E1181DDA6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{6123766E-449E-4EA5-9612-D343693BF443}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6123766E-449E-4EA5-9612-D343693BF443}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6123766E-449E-4EA5-9612-D343693BF443}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0160213-38FD-4A2C-A81E-189E1181DDA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0160213-38FD-4A2C-A81E-189E1181DDA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0160213-38FD-4A2C-A81E-189E1181DDA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0160213-38FD-4A2C-A81E-189E1181DDA6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

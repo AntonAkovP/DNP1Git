@@ -22,7 +22,7 @@
         </xs:element>
       </xs:choice>
     </xs:complexType>
-    <xs:unique name="UsersPK" msdata:PrimaryKey="true">
+    <xs:unique name="users_PK" msdata:PrimaryKey="true">
       <xs:selector xpath=".//mstns:Users" />
       <xs:field xpath="mstns:username" />
     </xs:unique>

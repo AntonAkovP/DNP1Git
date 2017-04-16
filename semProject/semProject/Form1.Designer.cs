@@ -29,8 +29,8 @@
         private void InitializeComponent()
         {
             this.panel1 = new System.Windows.Forms.Panel();
-            this.label1 = new System.Windows.Forms.Label();
             this.onlineList = new System.Windows.Forms.ListBox();
+            this.label1 = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -43,6 +43,14 @@
             this.panel1.Size = new System.Drawing.Size(192, 278);
             this.panel1.TabIndex = 0;
             // 
+            // onlineList
+            // 
+            this.onlineList.FormattingEnabled = true;
+            this.onlineList.Location = new System.Drawing.Point(3, 25);
+            this.onlineList.Name = "onlineList";
+            this.onlineList.Size = new System.Drawing.Size(186, 251);
+            this.onlineList.TabIndex = 1;
+            // 
             // label1
             // 
             this.label1.AutoSize = true;
@@ -52,14 +60,6 @@
             this.label1.TabIndex = 0;
             this.label1.Text = "Online users";
             // 
-            // onlineList
-            // 
-            this.onlineList.FormattingEnabled = true;
-            this.onlineList.Location = new System.Drawing.Point(3, 25);
-            this.onlineList.Name = "onlineList";
-            this.onlineList.Size = new System.Drawing.Size(186, 251);
-            this.onlineList.TabIndex = 1;
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -68,6 +68,7 @@
             this.Controls.Add(this.panel1);
             this.Name = "Form1";
             this.Text = "Form1";
+            this.Load += new System.EventHandler(this.Form1_Load);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.ResumeLayout(false);
