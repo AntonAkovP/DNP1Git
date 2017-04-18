@@ -14,17 +14,19 @@ namespace semProjectClient
 {
     public partial class LoginForm : Form
     {
-        TcpClient client;
-        NetworkStream ns = null;
+        private TcpClient client;
+        private NetworkStream ns = null;
+        private static Boolean accept = true;
+        
         public LoginForm()
         {
             InitializeComponent();
+
             usernameTB.GotFocus += new EventHandler(OnFocus);
             passwordTB.GotFocus += new EventHandler(OnFocus);
 
             usernameTB.LostFocus += new EventHandler(usernameTB_LostFocus);
             passwordTB.LostFocus += new EventHandler(passwordTB_LostFocus);
-
 
             Task.Run(()=>connectToServer());
         }
@@ -52,15 +54,37 @@ namespace semProjectClient
         private void interceptMessages()
         {
             XDocument doc;
-            while (true)
+            while (accept)
             {
                 doc = acceptMessage(ns);
-                MessageBox.Show(doc.Root.Element("rep").Value, doc.Root.Element("type").Value);
+                if (doc == null) break;
+                switch(doc.Root.Element("type").Value)
+                {
+                    case "regrep":
+                        if (Boolean.Parse(doc.Root.Element("rep").Value))
+                            MessageBox.Show("Successfully registered.","Registration", MessageBoxButtons.OK);
+                        else
+                            MessageBox.Show("Registration failed", "Registration", MessageBoxButtons.OK);
+                        break;
+                    case "logrep":
+                        if (Boolean.Parse(doc.Root.Element("rep").Value))
+                        {
+                            accept = false;
+                            List<String> NewOnline = new List<String>();
+                            foreach (XElement user in doc.Root.Element("users").Elements("user"))
+                                NewOnline.Add(user.Value);
+                            this.Invoke((Action)(() => new MainForm(NewOnline, ns, this).Show()));
+                            this.Invoke((Action)(() => this.Hide()));
+                        }
+                        else
+                            MessageBox.Show("Couldn't log in", "Log in", MessageBoxButtons.OK);
+                        break;
+                }
             }
 
         }
 
-        private XDocument acceptMessage(NetworkStream ns)
+        internal static XDocument acceptMessage(NetworkStream ns)
         {
             byte[] buff;
             StringBuilder message = new StringBuilder("Message not read");
@@ -70,8 +94,6 @@ namespace semProjectClient
             {
                 try
                 {
-
-
                     if (ns.CanRead)
                     {
                         buff = new byte[1024];
@@ -93,7 +115,9 @@ namespace semProjectClient
 
                 }
                 catch (System.IO.IOException) { return null; }
+
             }
+            return null;
         }
         private void OnFocus(object sender, System.EventArgs e)
         {
@@ -158,5 +182,7 @@ namespace semProjectClient
                 loginB.Enabled = false; registerB.Enabled = false;
             }
         }
+
+
     }
 }

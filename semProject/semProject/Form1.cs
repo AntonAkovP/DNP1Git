@@ -16,17 +16,19 @@ namespace semProject
 {
     public partial class Form1 : Form
     {
+        private static readonly object updateLock = new object();
         private UsersDataSet userData;
-
+        private Dictionary<string, NetworkStream> loggedIn;
+        private bool listenerB = true;
         public Form1()
         {
             InitializeComponent();
-        }
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
             userData = new UsersDataSet();
-            Task.Run(()=>startListening());
+            loggedIn = new Dictionary<string, NetworkStream>();
+
+            this.FormClosing += new FormClosingEventHandler(serverFormClosing);
+            Task.Run(() => startListening());
         }
 
         private void startListening()
@@ -35,7 +37,7 @@ namespace semProject
             IPAddress ipAdr = new IPAddress(adr);
             TcpListener newsock = new TcpListener(ipAdr, 12345);
             newsock.Start();
-            while (true)
+            while (listenerB)
             {
                 //Console.WriteLine("Waiting for a client...");
                 TcpClient client = newsock.AcceptTcpClient();
@@ -54,14 +56,43 @@ namespace semProject
 
             NetworkStream ns = client.GetStream();
             XDocument doc = acceptMessage(ns);
-
+            string user = null;
             try
             {
-                while (!LoginReg(doc, ns)) { doc = acceptMessage(ns); }
+                while (user==null) { user = LoginReg(doc, ns); doc = acceptMessage(ns); }
+                while (listenerB && processMessage(doc, ns, user)) { doc = acceptMessage(ns); }
             }
-            catch (Exception) { }
+            catch (System.IO.IOException) {logUserOut(user); return; }
 
-            
+            ns.Close();
+            client.Close();
+            logUserOut(user);
+            return;
+
+        }
+        private bool processMessage(XDocument doc, NetworkStream ns, String user)
+        {
+            switch(doc.Root.Element("type").Value)
+            {
+                case "loff": logUserOut(user); break;
+
+                case "refresh":break;
+
+                case "startchat":
+                    //Task startR = Task.Run(() = startRoom());
+
+                    //await startR;
+                    break;
+            }
+
+            return true;
+        }
+        private XElement onlineToXML()
+        {
+            XElement resultSet = new XElement("users");
+            foreach (string user in loggedIn.Keys)
+                resultSet.Add(new XElement("user", user));
+            return resultSet;
         }
         private XDocument acceptMessage(NetworkStream ns)
         {
@@ -71,10 +102,7 @@ namespace semProject
 
             while (true)
             {
-                try
-                {
-
-
+                //try block moved to handlerM
                     if (ns.CanRead)
                     {
                         buff = new byte[1024];
@@ -91,59 +119,122 @@ namespace semProject
                     }
 
 
-                    return XDocument.Parse(message.ToString());
-
-
-                }
+                try { return XDocument.Parse(message.ToString()); }
                 catch (System.IO.IOException) { return null; }
+
             }
         }
+        private void updateClients(XDocument doc)
+        {
+            lock (updateLock)
+            {
+                byte[] writeBuff = Encoding.UTF8.GetBytes(doc.ToString());
+                foreach (string user in loggedIn.Keys)
+                {
+                    try
+                    {
+                        loggedIn[user].Write(writeBuff, 0, writeBuff.Length);
+                    }
+                    catch (ObjectDisposedException) { return; }
+                    catch (System.IO.IOException) { if (doc.Root.Element("type").Value.Equals("sd"))continue; logUserOut(user); }
+                }
+            }
+            
+        }
+        private void logUserIn(string user, NetworkStream client)
+        {
+            XDocument doc = new XDocument(new XElement("serverUpdate"));
+            doc.Root.Add(new XElement("type", "uli"));
+            doc.Root.Add(new XElement("user", user));
+            updateClients(doc);
 
-        private Boolean LoginReg(XDocument doc, NetworkStream ns)
+            loggedIn.Add(user, client);
+            this.Invoke((Action)(()=>onlineList.Items.Add(user)));
+        }
+        private void logUserOut(string user)
+        {
+            XDocument doc = new XDocument(new XElement("serverUpdate"));
+            doc.Root.Add(new XElement("type", "ulo"));
+            doc.Root.Add(new XElement("user", user));
+            updateClients(doc);
+
+            try
+            {
+                loggedIn.Remove(user);
+                this.Invoke((Action)(()=>onlineList.Items.Remove(user)));
+                Log(user + " logged out/DC'd");
+            }
+            catch (ArgumentNullException) { }
+            catch (InvalidOperationException) { }
+            
+        }
+        /// <summary>
+        /// processes login window
+        /// </summary>
+        /// <param name="doc"></param>
+        /// <param name="ns"></param>
+        /// <returns>
+        /// returns username if login is successful(used to remove from lsit in case of DC) or null if not
+        /// </returns>
+        private string LoginReg(XDocument doc, NetworkStream ns)
         {
             byte[] writeBuff;
 
             
             if (doc.Root.Element("type").Value.Equals("log"))
             {
-                Log(doc.Root.Element("uname").Value + "attempted Login");
-
-                List<String> resultSet = (from usersData in userData.Users.AsEnumerable()
-                                          where usersData.username == doc.Root.Element("uname").Value
-                                          select string.Format("{0}", usersData.password)
-                                          ).ToList();
-
                 XDocument responce = new XDocument(new XElement("serverResponce"));
                 responce.Root.Add(new XElement("type", "logrep"));
-                XElement elem;
 
-                if (resultSet.Count>0 && resultSet[0].Equals(doc.Root.Element("pw").Value))
+                if (!loggedIn.Keys.Contains(doc.Root.Element("uname").Value))
                 {
-                    elem = new XElement("rep", true);
-                    responce.Root.Add(elem);
+                    Log(doc.Root.Element("uname").Value + " attempted Login");
 
-                    writeBuff = Encoding.UTF8.GetBytes(responce.ToString());
-                    ns.Write(writeBuff, 0, writeBuff.Length);
+                    List<String> resultSet = (from usersData in userData.Users.AsEnumerable()
+                                              where usersData.username == doc.Root.Element("uname").Value
+                                              select string.Format("{0}", usersData.password)
+                                              ).ToList();
+
+                    
+
+                    if (resultSet.Count > 0 && resultSet[0].Equals(doc.Root.Element("pw").Value))
+                    {
+                        logUserIn(doc.Root.Element("uname").Value, ns);
+                        responce.Root.Add(new XElement("rep", true));
+                        responce.Root.Add(onlineToXML());
+                        writeBuff = Encoding.UTF8.GetBytes(responce.ToString());
+                        ns.Write(writeBuff, 0, writeBuff.Length);
 
 
-                    Log(doc.Root.Element("uname").Value + "sucessfully logged in");
+                        Log(doc.Root.Element("uname").Value + " sucessfully logged in");
 
-                    return true;
+
+                        return doc.Root.Element("uname").Value; ;
+                    }
+                    else
+                    {
+                        responce.Root.Add(new XElement("rep", false));
+
+                        writeBuff = Encoding.UTF8.GetBytes(responce.ToString());
+                        ns.Write(writeBuff, 0, writeBuff.Length);
+
+                        Log(doc.Root.Element("uname").Value + " couldn't log in");
+
+                        return null;
+                    }
+
                 }
                 else
                 {
-                    elem = new XElement("rep", false);
-                    responce.Root.Add(elem);
+                    responce.Root.Add(new XElement("rep", false));
 
                     writeBuff = Encoding.UTF8.GetBytes(responce.ToString());
                     ns.Write(writeBuff, 0, writeBuff.Length);
 
-                    Log(doc.Root.Element("uname").Value + "couldn't logged in");
+                    Log(doc.Root.Element("uname").Value + " couldn't log in");
 
-                    return false;
+                    return null;
                 }
-
-
 
             }
 
@@ -153,20 +244,20 @@ namespace semProject
                 newUser.username = doc.Root.Element("uname").Value;
                 newUser.password = doc.Root.Element("pw").Value;
 
-                Log(doc.Root.Element("uname").Value + "attempted registration");
+                Log(doc.Root.Element("uname").Value + " attempted registration");
                 XElement elem;
                 try
                 {
                     userData.Users.Rows.Add(newUser);
                     elem = new XElement("rep", true);
 
-                    Log(doc.Root.Element("uname").Value + "sucessfully registered");
+                    Log(doc.Root.Element("uname").Value + " sucessfully registered");
                 }
                 catch (ConstraintException)
                 {
                     elem = new XElement("rep", false);
 
-                    Log(doc.Root.Element("uname").Value + "couldn't register");
+                    Log(doc.Root.Element("uname").Value + " couldn't register");
                 }
                 XDocument responce = new XDocument(new XElement("serverResponce"));
                 responce.Root.Add(elem);
@@ -175,10 +266,17 @@ namespace semProject
                 writeBuff = Encoding.UTF8.GetBytes(responce.ToString());
                 ns.Write(writeBuff, 0, writeBuff.Length);
             }
-            return false;
+            return null;
 
         }
 
+        private void serverFormClosing(object sender, FormClosingEventArgs e)
+        {
+            listenerB = false;
+            XDocument doc = new XDocument(new XElement("serverMessage"));
+            doc.Root.Add(new XElement("type", "sd"));
+            updateClients(doc);
+        }
         internal void Log(String message)
         {
             if (logBox.InvokeRequired)
