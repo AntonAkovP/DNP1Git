@@ -59,29 +59,30 @@ namespace semProject
             string user = null;
             try
             {
-                while (user==null) { user = LoginReg(doc, ns); doc = acceptMessage(ns); }
+                while (user == null) { user = LoginReg(doc, ns); doc = acceptMessage(ns); }
                 while (listenerB && processMessage(doc, ns, user)) { doc = acceptMessage(ns); }
             }
-            catch (System.IO.IOException) {logUserOut(user); return; }
+            catch (System.IO.IOException) { logUserOut(user); return; }
 
-            ns.Close();
-            client.Close();
+            try { 
+                ns.Close();
+                client.Close();
+            }
+            catch (System.IO.IOException) { }
             logUserOut(user);
             return;
 
         }
         private bool processMessage(XDocument doc, NetworkStream ns, String user)
         {
+            if (doc == null) return false;
             switch(doc.Root.Element("type").Value)
             {
                 case "loff": logUserOut(user); break;
+                case "inv":
+                    //List<string> users = new List<string>();
 
-                case "refresh":break;
-
-                case "startchat":
-                    //Task startR = Task.Run(() = startRoom());
-
-                    //await startR;
+                    //Task startR = Task.Run(() = new chatRoom(users, inviter));
                     break;
             }
 
@@ -120,12 +121,14 @@ namespace semProject
 
 
                 try { return XDocument.Parse(message.ToString()); }
-                catch (System.IO.IOException) { return null; }
+                catch (System.Xml.XmlException) { return null; }
+                
 
             }
         }
         private void updateClients(XDocument doc)
         {
+            List<String> toLogout = new List<String>();
             lock (updateLock)
             {
                 byte[] writeBuff = Encoding.UTF8.GetBytes(doc.ToString());
@@ -134,10 +137,13 @@ namespace semProject
                     try
                     {
                         loggedIn[user].Write(writeBuff, 0, writeBuff.Length);
+                        Log("update sent to " + user);
                     }
                     catch (ObjectDisposedException) { return; }
-                    catch (System.IO.IOException) { if (doc.Root.Element("type").Value.Equals("sd"))continue; logUserOut(user); }
+                    catch (System.IO.IOException) { if (doc.Root.Element("type").Value.Equals("sd"))continue; toLogout.Add(user); }
                 }
+                foreach (string user in toLogout)
+                    logUserOut(user);
             }
             
         }
@@ -153,10 +159,7 @@ namespace semProject
         }
         private void logUserOut(string user)
         {
-            XDocument doc = new XDocument(new XElement("serverUpdate"));
-            doc.Root.Add(new XElement("type", "ulo"));
-            doc.Root.Add(new XElement("user", user));
-            updateClients(doc);
+           
 
             try
             {
@@ -166,7 +169,11 @@ namespace semProject
             }
             catch (ArgumentNullException) { }
             catch (InvalidOperationException) { }
-            
+
+            XDocument doc = new XDocument(new XElement("serverUpdate"));
+            doc.Root.Add(new XElement("type", "ulo"));
+            doc.Root.Add(new XElement("user", user));
+            updateClients(doc);
         }
         /// <summary>
         /// processes login window
@@ -178,6 +185,7 @@ namespace semProject
         /// </returns>
         private string LoginReg(XDocument doc, NetworkStream ns)
         {
+            if (doc == null) return null;
             byte[] writeBuff;
 
             

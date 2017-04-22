@@ -70,6 +70,7 @@
             this.inviteButton.TabIndex = 3;
             this.inviteButton.Text = "Invite to Chat";
             this.inviteButton.UseVisualStyleBackColor = true;
+            this.inviteButton.Click += new System.EventHandler(this.inviteButton_Click);
             // 
             // MainForm
             // 

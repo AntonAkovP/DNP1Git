@@ -17,6 +17,7 @@ namespace semProjectClient
         private List<Form> openChats;
         private NetworkStream ns;
         private LoginForm loginF;
+        private bool listen;
 
         public MainForm(List<String> userList, NetworkStream nets, LoginForm parent)
         {
@@ -30,6 +31,7 @@ namespace semProjectClient
             ns = nets;
             openChats = new List<Form>();
             loginF = parent;
+            listen = true;
 
             this.FormClosing += new FormClosingEventHandler(mainFormClosing);
 
@@ -40,9 +42,9 @@ namespace semProjectClient
         {
 
             XDocument doc = LoginForm.acceptMessage(ns);
-            while (true)
+            while (listen)
             {
-                if (doc == null) break;
+                if (doc == null) { break; MessageBox.Show("listenerBroken"); }
                 switch (doc.Root.Element("type").Value)
                 {
                     case "uli":
@@ -63,6 +65,7 @@ namespace semProjectClient
 
         private void mainFormClosing(object sender, FormClosingEventArgs e)
         {
+            listen = false;
             foreach (Form chat in openChats)
             {
                 chat.Close();
@@ -82,5 +85,25 @@ namespace semProjectClient
             loginF.Close();
         }
 
+        private void inviteButton_Click(object sender, EventArgs e)
+        {
+            XDocument doc = new XDocument(new XElement("clinetMessage"));
+            doc.Root.Add(new XElement("type", "inv"));
+            doc.Root.Add(new XElement("users"));
+            foreach (string user in onlineList.SelectedItems.Cast<string>())
+                doc.Root.Element("users").Add("user", user);
+
+            byte[] writebuff = Encoding.UTF8.GetBytes(doc.ToString());
+            try
+            {
+                ns.Write(writebuff, 0, writebuff.Length);
+            }
+            catch (System.IO.IOException)
+            {
+                MessageBox.Show("Disconnected form server, client will now exit.", "Server shut down", MessageBoxButtons.OK);
+                this.Invoke((Action)(() => this.Close()));
+                return;
+            }
+        }
     }
 }

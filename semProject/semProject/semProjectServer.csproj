@@ -74,6 +74,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="chatRoom.cs" />
     <Compile Include="UsersDataSet.cs">
       <DependentUpon>UsersDataSet.xsd</DependentUpon>
     </Compile>
