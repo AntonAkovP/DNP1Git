@@ -78,11 +78,13 @@ namespace semProject
             if (doc == null) return false;
             switch(doc.Root.Element("type").Value)
             {
-                case "loff": logUserOut(user); break;
+                case "loff": return false;
                 case "inv":
-                    //List<string> users = new List<string>();
-
-                    //Task startR = Task.Run(() = new chatRoom(users, inviter));
+                    List<NetworkStream> users = new List<NetworkStream>();
+                    foreach (XElement invited in doc.Root.Element("users").Elements("user"))
+                        users.Add(loggedIn[invited.Value]);
+                    Task startR = Task.Run(() => new chatRoom(users, user));
+                    //Log("Invites sent to " + users);
                     break;
             }
 

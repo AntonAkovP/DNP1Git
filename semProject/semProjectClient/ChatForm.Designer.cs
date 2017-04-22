@@ -36,8 +36,12 @@
             // 
             // chatRTB
             // 
+            this.chatRTB.BackColor = System.Drawing.Color.White;
+            this.chatRTB.HideSelection = false;
             this.chatRTB.Location = new System.Drawing.Point(12, 12);
             this.chatRTB.Name = "chatRTB";
+            this.chatRTB.ReadOnly = true;
+            this.chatRTB.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
             this.chatRTB.Size = new System.Drawing.Size(222, 213);
             this.chatRTB.TabIndex = 0;
             this.chatRTB.Text = "";
@@ -69,13 +73,14 @@
             // 
             // ChatForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.ClientSize = new System.Drawing.Size(386, 270);
             this.Controls.Add(this.onlineBox);
             this.Controls.Add(this.sendB);
             this.Controls.Add(this.messageTB);
             this.Controls.Add(this.chatRTB);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "ChatForm";
             this.Text = "ChatForm";
             this.ResumeLayout(false);

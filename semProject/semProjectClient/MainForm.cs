@@ -23,7 +23,7 @@ namespace semProjectClient
         {
             InitializeComponent();
 
-            this.Text = parent.Controls.Find("usernameTB",false)[0].Text;
+            this.Text = parent.Controls.Find("usernameTB", false)[0].Text;
             onlineList.Items.Clear();
             foreach (var e in userList)
                 onlineList.Items.Add(e);
@@ -37,14 +37,14 @@ namespace semProjectClient
 
             Task.Run(() => inviteListener());
         }
-        
+
         private void inviteListener()
         {
 
             XDocument doc = LoginForm.acceptMessage(ns);
             while (listen)
             {
-                if (doc == null) { break; MessageBox.Show("listenerBroken"); }
+                if (doc == null) { break; }
                 switch (doc.Root.Element("type").Value)
                 {
                     case "uli":
@@ -53,9 +53,41 @@ namespace semProjectClient
                     case "ulo":
                         this.Invoke((Action)(() => onlineList.Items.Remove(doc.Root.Element("user").Value)));
                         break;
-                    case "inv": break;
+                    case "inv":
+                        if (doc.Root.Element("invtr").Value.Equals(this.Text))
+                        {
+                            this.Invoke((Action)(() => new ChatForm(new TcpClient(
+                                doc.Root.Element("ip").Value, int.Parse(doc.Root.Element("p").Value)
+                                ).GetStream(), this.Text).Show()));
+                        }
+                        else
+                        {
+                            if (DialogResult.Yes == MessageBox.Show(
+                                doc.Root.Element("invtr").Value + "  invited you to join a chat room. Connect and open a new chat window?",
+                                doc.Root.Element("invtr").Value + "  invited you to join a chat.",
+                                MessageBoxButtons.YesNo
+                                ))
+                            {
+                                this.Invoke((Action)(() => new ChatForm(new TcpClient(
+                                doc.Root.Element("ip").Value, int.Parse(doc.Root.Element("p").Value)
+                                ).GetStream(), this.Text).Show()));
+                            }
+                            else
+                            {
+                                XDocument resp = new XDocument(new XElement("replyResp"));
+                                resp.Root.Add(new XElement("acc"), false);
+                                resp.Root.Add(new XElement("user", this.Text));
+
+                                byte[] decbuff = Encoding.UTF8.GetBytes(resp.ToString());
+
+                                new TcpClient(
+                                doc.Root.Element("ip").Value, int.Parse(doc.Root.Element("p").Value)
+                                ).GetStream().Write(decbuff, 0, decbuff.Length);
+                            }
+                        }
+                        break;
                     case "sd":
-                        MessageBox.Show("Server has shut down, client will now exit.","Server shut down",MessageBoxButtons.OK);
+                        MessageBox.Show("Server has shut down, client will now exit.", "Server shut down", MessageBoxButtons.OK);
                         this.Invoke((Action)(() => this.Close()));
                         return;
                 }
@@ -68,7 +100,7 @@ namespace semProjectClient
             listen = false;
             foreach (Form chat in openChats)
             {
-                chat.Close();
+                try { chat.Close(); } catch (ObjectDisposedException) { }
             }
             try
             {
@@ -87,11 +119,20 @@ namespace semProjectClient
 
         private void inviteButton_Click(object sender, EventArgs e)
         {
+            var selected = onlineList.SelectedItems.Cast<string>();
+
+            if (selected.Count()==0 ||
+                (selected.Count() == 1 && selected.Contains(this.Text))
+                ) return;
             XDocument doc = new XDocument(new XElement("clinetMessage"));
             doc.Root.Add(new XElement("type", "inv"));
             doc.Root.Add(new XElement("users"));
-            foreach (string user in onlineList.SelectedItems.Cast<string>())
-                doc.Root.Element("users").Add("user", user);
+
+            
+            foreach (string user in selected)
+                doc.Root.Element("users").Add(new XElement("user", user));
+
+            if (!selected.Contains(this.Text)) doc.Root.Element("users").Add(new XElement("user", this.Text));
 
             byte[] writebuff = Encoding.UTF8.GetBytes(doc.ToString());
             try

@@ -50,6 +50,7 @@
             this.onlineList.Location = new System.Drawing.Point(3, 25);
             this.onlineList.MultiColumn = true;
             this.onlineList.Name = "onlineList";
+            this.onlineList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.onlineList.Size = new System.Drawing.Size(366, 212);
             this.onlineList.TabIndex = 1;
             // 
@@ -79,6 +80,7 @@
             this.ClientSize = new System.Drawing.Size(396, 303);
             this.Controls.Add(this.inviteButton);
             this.Controls.Add(this.panel1);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "MainForm";
             this.Text = "Form1";
             this.panel1.ResumeLayout(false);

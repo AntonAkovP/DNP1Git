@@ -30,6 +30,7 @@ namespace semProjectClient
 
             Task.Run(()=>connectToServer());
         }
+
         private void connectToServer()
         {
 
@@ -50,7 +51,6 @@ namespace semProjectClient
 
             interceptMessages();
         }
-
         private void interceptMessages()
         {
             XDocument doc;
@@ -117,7 +117,6 @@ namespace semProjectClient
                 catch (System.IO.IOException) { return null; }
 
             }
-            return null;
         }
         private void OnFocus(object sender, System.EventArgs e)
         {
