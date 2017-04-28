@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="chatRoom.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="UsersDataSet.cs">
       <DependentUpon>UsersDataSet.xsd</DependentUpon>
     </Compile>
