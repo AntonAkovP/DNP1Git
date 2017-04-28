@@ -14,10 +14,20 @@ using System.Xml.Linq;
 
 namespace semProject
 {
+    /// <summary>
+    /// main server form. Has a list of online users and a log, kind of used for debugging
+    /// </summary>
     public partial class Form1 : Form
     {
         private static readonly object updateLock = new object();
+        /// <summary>
+        /// we weren't exactly sure if we can get a database inside the solution so we used just a dataset without an adapter,
+        /// which just acts as if you start with a clean database each time u restart the server
+        /// </summary>
         private UsersDataSet userData;
+        /// <summary>
+        /// holds logged in users paired with their connection
+        /// </summary>
         private Dictionary<string, NetworkStream> loggedIn;
         private bool listenerB = true;
         public Form1()
@@ -31,6 +41,9 @@ namespace semProject
             Task.Run(() => startListening());
         }
 
+        /// <summary>
+        /// creates a new thread to handle the connection with each user
+        /// </summary>
         private void startListening()
         {
             byte[] adr = { 127, 0, 0, 1 };
@@ -47,7 +60,10 @@ namespace semProject
                 //Console.WriteLine(client.ToString() + " has connected.");
             }
         }
-
+        /// <summary>
+        /// handles individual users
+        /// </summary>
+        /// <param name="clientO"></param>
         private void handlerM(object clientO)
         {
             TcpClient client = clientO as TcpClient;
@@ -59,7 +75,7 @@ namespace semProject
             string user = null;
             try
             {
-                while (user == null) { user = LoginReg(doc, ns); doc = acceptMessage(ns); }
+                while (listenerB && user == null) { user = LoginReg(doc, ns); doc = acceptMessage(ns); }
                 while (listenerB && processMessage(doc, ns, user)) { doc = acceptMessage(ns); }
             }
             catch (System.IO.IOException) { logUserOut(user); return; }
@@ -73,6 +89,13 @@ namespace semProject
             return;
 
         }
+        /// <summary>
+        /// handles communication after login, used to keep handlerM cleaner
+        /// </summary>
+        /// <param name="doc"></param>
+        /// <param name="ns"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
         private bool processMessage(XDocument doc, NetworkStream ns, String user)
         {
             if (doc == null) return false;
@@ -83,13 +106,17 @@ namespace semProject
                     List<NetworkStream> users = new List<NetworkStream>();
                     foreach (XElement invited in doc.Root.Element("users").Elements("user"))
                         users.Add(loggedIn[invited.Value]);
-                    Task startR = Task.Run(() => new chatRoom(users, user));
+                    Task.Run(() => new chatRoom(users, user));
                     //Log("Invites sent to " + users);
                     break;
             }
 
             return true;
         }
+        /// <summary>
+        /// returns an XElement to be added to an XDocument containing all online users
+        /// </summary>
+        /// <returns></returns>
         private XElement onlineToXML()
         {
             XElement resultSet = new XElement("users");
@@ -97,6 +124,11 @@ namespace semProject
                 resultSet.Add(new XElement("user", user));
             return resultSet;
         }
+        /// <summary>
+        /// retuns an xdocument from the given stream
+        /// </summary>
+        /// <param name="ns"></param>
+        /// <returns></returns>
         private XDocument acceptMessage(NetworkStream ns)
         {
             byte[] buff;
@@ -113,7 +145,9 @@ namespace semProject
 
                         do
                         {
-                            bread = ns.Read(buff, 0, buff.Length);
+
+                            try { bread = ns.Read(buff, 0, buff.Length); }
+                            catch (System.IO.IOException) { break; }
 
                             message.AppendFormat("{0}", Encoding.UTF8.GetString(buff, 0, bread));
 
@@ -128,12 +162,16 @@ namespace semProject
 
             }
         }
+        /// <summary>
+        /// sends a message to all logged in clients
+        /// </summary>
+        /// <param name="doc"></param>
         private void updateClients(XDocument doc)
         {
             List<String> toLogout = new List<String>();
+            byte[] writeBuff = Encoding.UTF8.GetBytes(doc.ToString());
             lock (updateLock)
             {
-                byte[] writeBuff = Encoding.UTF8.GetBytes(doc.ToString());
                 foreach (string user in loggedIn.Keys)
                 {
                     try
@@ -187,7 +225,7 @@ namespace semProject
         /// </returns>
         private string LoginReg(XDocument doc, NetworkStream ns)
         {
-            if (doc == null) return null;
+            if (doc == null) { listenerB = false; return null; }
             byte[] writeBuff;
 
             
@@ -279,7 +317,16 @@ namespace semProject
             return null;
 
         }
-
+        //[System.Web.Services.WebMethod()]
+        public int numberOnline()
+        {
+            return loggedIn.Count;
+        }
+        /// <summary>
+        /// notifies all clients server's shut down
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void serverFormClosing(object sender, FormClosingEventArgs e)
         {
             listenerB = false;

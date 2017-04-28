@@ -12,6 +12,9 @@ using System.Xml.Linq;
 
 namespace semProjectClient
 {
+    /// <summary>
+    /// used to see online users and intiate conversations
+    /// </summary>
     public partial class MainForm : Form
     {
         private List<Form> openChats;
@@ -19,6 +22,12 @@ namespace semProjectClient
         private LoginForm loginF;
         private bool listen;
 
+        /// <summary>
+        /// gets an online list and a network steam to the server on creation
+        /// </summary>
+        /// <param name="userList"></param>
+        /// <param name="nets"></param>
+        /// <param name="parent"></param>
         public MainForm(List<String> userList, NetworkStream nets, LoginForm parent)
         {
             InitializeComponent();
@@ -38,6 +47,9 @@ namespace semProjectClient
             Task.Run(() => inviteListener());
         }
 
+        /// <summary>
+        /// handles users coming online and going offline, invites to chat rooms, and the server shutting down
+        /// </summary>
         private void inviteListener()
         {
 
@@ -56,9 +68,14 @@ namespace semProjectClient
                     case "inv":
                         if (doc.Root.Element("invtr").Value.Equals(this.Text))
                         {
-                            this.Invoke((Action)(() => new ChatForm(new TcpClient(
-                                doc.Root.Element("ip").Value, int.Parse(doc.Root.Element("p").Value)
-                                ).GetStream(), this.Text).Show()));
+                            this.Invoke((Action)(() => 
+                            {
+                                var f = new ChatForm(new TcpClient(
+                                    doc.Root.Element("ip").Value, int.Parse(doc.Root.Element("p").Value)
+                                    ).GetStream(), this.Text);
+                                f.Show();
+                                f.BringToFront();
+                            }));
                         }
                         else
                         {
@@ -68,9 +85,14 @@ namespace semProjectClient
                                 MessageBoxButtons.YesNo
                                 ))
                             {
-                                this.Invoke((Action)(() => new ChatForm(new TcpClient(
-                                doc.Root.Element("ip").Value, int.Parse(doc.Root.Element("p").Value)
-                                ).GetStream(), this.Text).Show()));
+                                this.Invoke((Action)(() =>
+                                {
+                                    var f = new ChatForm(new TcpClient(
+                                    doc.Root.Element("ip").Value, int.Parse(doc.Root.Element("p").Value)
+                                    ).GetStream(), this.Text);
+                                    f.Show();
+                                    f.BringToFront();
+                                }));
                             }
                             else
                             {
@@ -94,7 +116,11 @@ namespace semProjectClient
                 doc = LoginForm.acceptMessage(ns);
             }
         }
-
+        /// <summary>
+        /// closes each chat and notifies the server the user's logged out
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void mainFormClosing(object sender, FormClosingEventArgs e)
         {
             listen = false;
@@ -117,6 +143,11 @@ namespace semProjectClient
             loginF.Close();
         }
 
+        /// <summary>
+        /// sends a list of users to the server so it creates a chat room and invites them
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void inviteButton_Click(object sender, EventArgs e)
         {
             var selected = onlineList.SelectedItems.Cast<string>();

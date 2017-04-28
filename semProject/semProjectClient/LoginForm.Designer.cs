@@ -84,6 +84,7 @@
             this.Controls.Add(this.loginB);
             this.Controls.Add(this.passwordTB);
             this.Controls.Add(this.usernameTB);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "LoginForm";
             this.Text = "Log In";
             this.ResumeLayout(false);

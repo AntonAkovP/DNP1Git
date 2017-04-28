@@ -43,7 +43,7 @@
             this.chatRTB.ReadOnly = true;
             this.chatRTB.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
             this.chatRTB.Size = new System.Drawing.Size(222, 213);
-            this.chatRTB.TabIndex = 0;
+            this.chatRTB.TabIndex = 1;
             this.chatRTB.Text = "";
             // 
             // messageTB
@@ -51,7 +51,7 @@
             this.messageTB.Location = new System.Drawing.Point(12, 241);
             this.messageTB.Name = "messageTB";
             this.messageTB.Size = new System.Drawing.Size(222, 20);
-            this.messageTB.TabIndex = 1;
+            this.messageTB.TabIndex = 0;
             // 
             // sendB
             // 
@@ -82,6 +82,7 @@
             this.Controls.Add(this.chatRTB);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "ChatForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "ChatForm";
             this.ResumeLayout(false);
             this.PerformLayout();

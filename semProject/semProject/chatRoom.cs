@@ -21,6 +21,9 @@ namespace semProject
         private Dictionary<string, NetworkStream> loggedIn;
         private TcpListener chatsock;
         private Boolean chat;
+        /// <summary>
+        /// used to terminate room automatically after like like 1 minute if there's no users online
+        /// </summary>
         private Stopwatch timeLive;
 
         public chatRoom(List<NetworkStream> users, string inviter)
@@ -149,9 +152,9 @@ namespace semProject
         private void updateClients(XDocument doc)
         {
             List<String> toLogout = new List<String>();
+            byte[] writeBuff = Encoding.UTF8.GetBytes(doc.ToString());
             lock (updateLock)
             {
-                byte[] writeBuff = Encoding.UTF8.GetBytes(doc.ToString());
                 foreach (string user in loggedIn.Keys)
                 {
                     try
@@ -169,9 +172,9 @@ namespace semProject
         private void updateClients(XDocument doc, ref Boolean con)
         {
             List<String> toLogout = new List<String>();
+            byte[] writeBuff = Encoding.UTF8.GetBytes(doc.ToString());
             lock (updateLock)
             {
-                byte[] writeBuff = Encoding.UTF8.GetBytes(doc.ToString());
                 foreach (string user in loggedIn.Keys)
                 {
                     try

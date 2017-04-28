@@ -12,6 +12,9 @@ using System.Xml.Linq;
 
 namespace semProjectClient
 {
+    /// <summary>
+    /// form responsible for the login
+    /// </summary>
     public partial class LoginForm : Form
     {
         private TcpClient client;
@@ -31,6 +34,9 @@ namespace semProjectClient
             Task.Run(()=>connectToServer());
         }
 
+        /// <summary>
+        /// ran as a task so it doesn't block the form
+        /// </summary>
         private void connectToServer()
         {
 
@@ -51,6 +57,9 @@ namespace semProjectClient
 
             interceptMessages();
         }
+        /// <summary>
+        /// handles server replies
+        /// </summary>
         private void interceptMessages()
         {
             XDocument doc;
@@ -83,7 +92,11 @@ namespace semProjectClient
             }
 
         }
-
+        /// <summary>
+        /// used to accept a message from the given stream
+        /// </summary>
+        /// <param name="ns"></param>
+        /// <returns></returns>
         internal static XDocument acceptMessage(NetworkStream ns)
         {
             byte[] buff;
@@ -108,17 +121,19 @@ namespace semProjectClient
                         }
                         while (ns.DataAvailable);
                     }
-
-
                     return XDocument.Parse(message.ToString());
-
-
                 }
                 catch (System.IO.IOException) { return null; }
-
+                catch (ObjectDisposedException) { return null; }
             }
         }
-        private void OnFocus(object sender, System.EventArgs e)
+
+        /// <summary>
+        /// following 4 methods used to to have "Username" and "Password" in the textboxes when they're empty
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnFocus(object sender, EventArgs e)
         {
             TextBox tb = sender as TextBox;
             if (tb.ForeColor == Color.Gray)
@@ -127,7 +142,6 @@ namespace semProjectClient
                 tb.ForeColor = Color.Black;
             }
         }
-
         private void usernameTB_LostFocus(object sender, EventArgs e)
         {
             TextBox tb = sender as TextBox;
@@ -144,6 +158,18 @@ namespace semProjectClient
             {
                 tb.Text = "Password";
                 tb.ForeColor = Color.Gray;
+            }
+        }
+        private void TB_TextChanged(object sender, EventArgs e)
+        {
+            if (!usernameTB.Text.Equals("Username") && !passwordTB.Text.Equals("Password") &&
+                !usernameTB.Text.Equals(String.Empty) && !passwordTB.Text.Equals(String.Empty))
+            {
+                loginB.Enabled = true; registerB.Enabled = true;
+            }
+            else
+            {
+                loginB.Enabled = false; registerB.Enabled = false;
             }
         }
 
@@ -169,18 +195,7 @@ namespace semProjectClient
             ns.Write(writeBuff, 0, writeBuff.Length);
         }
 
-        private void TB_TextChanged(object sender, EventArgs e)
-        {
-            if (!usernameTB.Text.Equals("Username") && !passwordTB.Text.Equals("Password")&& 
-                !usernameTB.Text.Equals(String.Empty) && !passwordTB.Text.Equals(String.Empty))
-            {
-                loginB.Enabled = true; registerB.Enabled = true;
-            }
-            else
-            {
-                loginB.Enabled = false; registerB.Enabled = false;
-            }
-        }
+        
 
 
     }
