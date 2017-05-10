@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:intf="http://webServiceSJ3Course" xmlns:apachesoap="http://xml.apache.org/xml-soap" xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:impl="http://webServiceSJ3Course" targetNamespace="http://webServiceSJ3Course" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <xsd:schema xmlns="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://webServiceSJ3Course">
+      <xsd:element name="getCont">
+        <xsd:complexType />
+      </xsd:element>
+      <xsd:element name="getContResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="getContReturn" type="xsd:string" />
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="getContResponse">
+    <wsdl:part name="parameters" element="impl:getContResponse" />
+  </wsdl:message>
+  <wsdl:message name="getContRequest">
+    <wsdl:part name="parameters" element="impl:getCont" />
+  </wsdl:message>
+  <wsdl:portType name="testMethod">
+    <wsdl:operation name="getCont">
+      <wsdl:input name="getContRequest" message="impl:getContRequest" />
+      <wsdl:output name="getContResponse" message="impl:getContResponse" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="testMethodSoapBinding" type="impl:testMethod">
+    <wsdlsoap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="getCont">
+      <wsdlsoap:operation soapAction="" />
+      <wsdl:input name="getContRequest">
+        <wsdlsoap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="getContResponse">
+        <wsdlsoap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="testMethodService">
+    <wsdl:port name="testMethod" binding="impl:testMethodSoapBinding">
+      <wsdlsoap:address location="http://localhost:8080/webServiceSJ3Course/services/testMethod" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
